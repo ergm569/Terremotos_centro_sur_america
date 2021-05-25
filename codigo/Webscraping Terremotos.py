@@ -30,6 +30,8 @@ def webScrapingTerremoto(año = 2010,pais = 'peru'):
     columnaMagnitud = []
     columnaProfundidad = []
     columnaUbicacion = []
+    columnaLatitud = []
+    columnaLongitud = []
         
     for filas in tabla.find_all("tr", {"class": ["q4", "q5"]}):
         contenido = filas.select_one('td:-soup-contains("GMT")').text.strip()
@@ -42,8 +44,16 @@ def webScrapingTerremoto(año = 2010,pais = 'peru'):
                 columnaProfundidad.append(filas4.next_sibling)
         for filas5 in filas.find_all("td", {"class": "list_region"}):
             columnaUbicacion.append(filas5.get_text())
-        
-    tabla_final = pnds.DataFrame(list(zip(columnaFechayHora, columnaMagnitud, columnaProfundidad, columnaUbicacion)), columns = ["Fecha y Hora", "Magnitud", "Profundidad", "Ubicacion"])
+        for filas6 in filas.find_all("td", {"class": "smap"}):
+            captura_coordenadas = filas6.get("onclick")
+            captura_coordenadas2 = captura_coordenadas.replace("openPopup(", "")
+            captura_coordenadas3 = captura_coordenadas2.replace(")", "")
+            separar_coordenadas = captura_coordenadas3.split(",", 3)
+            latitud_texto = separar_coordenadas[0]
+            longitud_texto = separar_coordenadas[1]
+            columnaLatitud.append(latitud_texto)
+            columnaLongitud.append(longitud_texto)
+    tabla_final = pnds.DataFrame(list(zip(columnaFechayHora, columnaMagnitud, columnaProfundidad, columnaUbicacion, columnaLongitud, columnaLatitud)), columns = ["Fecha y Hora", "Magnitud", "Profundidad", "Ubicacion", "Longitud", "Latitud"])
         
     tabla_final['Año'] = año
     tabla_final['Pais'] = pais
